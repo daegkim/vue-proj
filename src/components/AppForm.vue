@@ -24,7 +24,7 @@ export default {
         return
       }
 
-      let priority = this.propMemoList[this.propMemoList.length - 1].priority + 1
+      let priority = this.propMemoList.length !== 0 ? this.propMemoList[this.propMemoList.length - 1].priority + 1 : 0
       let tmpMemo = {
         memo: this.memo,
         isDone: false,

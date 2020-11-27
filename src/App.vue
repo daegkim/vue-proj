@@ -25,7 +25,9 @@ export default {
   computed: {
     sortedMemoList: function() {
       this.memoList.sort(function(a, b) {
-        return (a.priority < b.priority) ? (-1) : (a.priority > b.priority ? 1 : 0)
+        if(a.priority < b.priority) return -1
+        else if(a.priority === b.priority) return 0
+        else if(a.priority > b.priority) return 1
       })
       return this.memoList
     }
@@ -62,7 +64,7 @@ export default {
             changeMode: false,
             canFocusOut: true
           }
-          resMemoList.push(tmpMemo)
+          self.memoList.push(tmpMemo)
 
           /*
           self.$watch속성 부여. 나중에 사용할 일이 있을 것 같아서 주석처리함.
@@ -85,7 +87,6 @@ export default {
           }, {deep: true})
           */
         }
-        self.memoList = resMemoList
       })
     },
     reportChange: function(arg) {
@@ -102,6 +103,9 @@ export default {
           break
         case 'changePriority':
           console.log(arg.idx)
+          break
+        case 'clearMemoList':
+          this.memoList = []
           break
       }
       //axios로 서버에 요청하여 서버에서 케이스 별로 데이터 수정

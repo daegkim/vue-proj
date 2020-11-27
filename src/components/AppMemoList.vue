@@ -1,7 +1,7 @@
 <template>
   <div id='app-memo-list'>
     <ul>
-      <li v-for='(v, idx) in memoList' v-bind:key='idx' 
+      <li v-for='(v, idx) in propMemoList' v-bind:key='idx' 
       draggable='true' 
       v-on:dragstart='dragStart($event, idx)'
       v-on:drop='drop($event, idx)'
@@ -13,21 +13,37 @@
         v-on:focusout='v.canFocusOut ? focusOut($event, idx) : null' type="text">
       </li>
     </ul>
+
+    <button v-on:click='showModal=true'>Clear All</button>
+    <modal v-if='showModal'>
+      <h3 slot='header'>Caution</h3>
+      <p slot='body' style='white-space: nowrap'>
+        Are you sure you want to delete everything?
+        <br>
+        Unable to recover.
+      </p>
+      <div slot='footer'>
+        <button class='modal-default-button' v-on:click='showModal=false'>CANCEL</button>
+        <button class='modal-default-button' v-on:click='okModal' style='margin-right: 5px'>OK</button>
+      </div>
+    </modal>
+
   </div>
 </template>
 
 <script>
+import Modal from './common/Modal.vue'
+
 export default {
   name: 'AppMemoList',
   props: ['propMemoList'],
+  components: {
+    Modal: Modal
+  },
   data: function() {
     return {
-      oldMemoList: undefined
-    }
-  },
-  computed: {
-    memoList: function() {
-      return this.propMemoList
+      oldMemoList: undefined,
+      showModal: false
     }
   },
   directives: {
@@ -48,33 +64,34 @@ export default {
       this.reportChange('changeDone', idx)
     },
     startChange: function(idx) {
-      if(this.memoList.length !== 0){
+      console.log(idx)
+      if(this.propMemoList.length !== 0){
         this.oldMemoList = []
       }
 
-      for(let i in this.memoList){
-        if(this.memoList[i].changeMode) {
-          this.memoList[i].changeMode = false
+      for(let i in this.propMemoList){
+        if(this.propMemoList[i].changeMode) {
+          this.propMemoList[i].changeMode = false
         }
         if(idx === parseInt(i)){
-          this.memoList[i].changeMode = true
-          this.memoList[i].canFocusOut = true
+          this.propMemoList[i].changeMode = true
+          this.propMemoList[i].canFocusOut = true
         }
 
         let tmpMemo = {
-          priority: this.memoList[i].priority,
-          memo: this.memoList[i].memo,
-          isDone: this.memoList[i].isDone,
-          changeMode: this.memoList[i].changeMode,
-          canFocusOut: this.memoList[i].canFocusOut
+          priority: this.propMemoList[i].priority,
+          memo: this.propMemoList[i].memo,
+          isDone: this.propMemoList[i].isDone,
+          changeMode: this.propMemoList[i].changeMode,
+          canFocusOut: this.propMemoList[i].canFocusOut
         }
         this.oldMemoList.push(tmpMemo)
       }
     },
     endChange: function(e, idx) {
       if(e.keyCode === 13) {
-        this.memoList[idx].canFocusOut = false
-        this.memoList[idx].changeMode = false
+        this.propMemoList[idx].canFocusOut = false
+        this.propMemoList[idx].changeMode = false
         this.reportChange('endChange', idx)
       }
     },
@@ -86,17 +103,20 @@ export default {
       if(trgtIdx === srcIdx) {
         return
       }
-      let srcPriority = this.memoList[srcIdx].priority
-      let trgtPriority = this.memoList[trgtIdx].priority
+      let srcPriority = this.propMemoList[srcIdx].priority
+      let trgtPriority = this.propMemoList[trgtIdx].priority
 
-      this.memoList[trgtIdx].priority = srcPriority
-      this.memoList[srcIdx].priority = trgtPriority
+      this.propMemoList[trgtIdx].priority = srcPriority
+      this.propMemoList[srcIdx].priority = trgtPriority
       this.reportChange('changePriority', [srcPriority, trgtPriority])
     },
     focusOut: function(e, idx) {
-      console.log(e)
-      this.memoList[idx].changeMode = false
-      this.memoList[idx].memo = this.oldMemoList[idx].memo
+      this.propMemoList[idx].changeMode = false
+      this.propMemoList[idx].memo = this.oldMemoList[idx].memo
+    },
+    okModal: function() {
+      this.reportChange('clearMemoList')
+      this.showModal = false
     }
   }
 }
