@@ -1,8 +1,12 @@
 <template>
   <div id="app">
     <app-header/>
-    <app-form v-bind:propUserId='userId' v-bind:propMemoList='sortedMemoList' v-on:addMemo='addMemo'/>
-    <app-memo-list v-bind:propMemoList='sortedMemoList' v-on:reportChange='reportChange'/>
+    <app-form v-bind:propUserId='userId'
+    v-bind:propMemoList='sortedOngoingMemoList'
+    v-on:addMemo='addMemo'/>
+    <app-memo-list v-bind:propOngoingMemoList='sortedOngoingMemoList'
+    v-bind:propDoneMemoList='sortedDoneMemoList'
+    v-on:reportChange='reportChange'/>
   </div>
 </template>
 
@@ -19,17 +23,26 @@ export default {
     return {
       msg: 'Welcome to Your Vue.js App',
       userId: 'dgsoul',
-      memoList: []
+      ongoingMemoList: [],
+      doneMemoList: []
     }
   },
   computed: {
-    sortedMemoList: function() {
-      this.memoList.sort(function(a, b) {
+    sortedOngoingMemoList: function() {
+      this.ongoingMemoList.sort(function(a, b) {
         if(a.priority < b.priority) return -1
         else if(a.priority === b.priority) return 0
         else if(a.priority > b.priority) return 1
       })
-      return this.memoList
+      return this.ongoingMemoList
+    },
+    sortedDoneMemoList: function() {
+      this.doneMemoList.sort(function(a, b) {
+        if(a.priority < b.priority) return -1
+        else if(a.priority === b.priority) return 0
+        else if(a.priority > b.priority) return 1
+      })
+      return this.doneMemoList
     }
   },
   components: {
@@ -42,7 +55,7 @@ export default {
   },
   methods: {
     addMemo: function(arg) {
-      this.memoList.push(arg)
+      this.ongoingMemoList.push(arg)
     },
     getMemoList: function() {
       let self = this
@@ -55,7 +68,6 @@ export default {
         }
       })
       .then(function(res) {
-        let resMemoList = []
         for(let i in res.data){
           let tmpMemo = {
             priority: parseInt(i),
@@ -64,7 +76,13 @@ export default {
             changeMode: false,
             canFocusOut: true
           }
-          self.memoList.push(tmpMemo)
+
+          if(res.data[i].isDone === undefined || !res.data[i].isDone){
+            self.ongoingMemoList.push(tmpMemo)
+          }
+          else{
+            self.doneMemoList.push(tmpMemo)
+          }
 
           /*
           self.$watch속성 부여. 나중에 사용할 일이 있을 것 같아서 주석처리함.
@@ -91,21 +109,38 @@ export default {
     },
     reportChange: function(arg) {
       console.log(arg.prop)
+      let selectedMemo = this.ongoingMemoList[arg.idx]
+
       switch(arg.prop){
         case 'endChange':
-          console.log(this.memoList[arg.idx].memo)
-          if(this.memoList[arg.idx].memo === ''){
-            this.memoList.splice(arg.idx, 1)
+          console.log(selectedMemo.memo)
+          if(selectedMemo.memo === ''){
+            this.ongoingMemoList.splice(arg.idx, 1)
           }
           break
         case 'changeDone':
-          console.log(this.memoList[arg.idx].isDone)
+          let selectedDoneMemo = this.doneMemoList[arg.idx]
+          if(selectedMemo.isDone){
+            let jsonStr = JSON.stringify(selectedMemo)
+            let tmpMemo = JSON.parse(jsonStr)
+            this.ongoingMemoList.splice(arg.idx, 1)
+            this.doneMemoList.push(tmpMemo)
+          }
+          else if(!selectedDoneMemo.isDone){
+            selectedDoneMemo = this.doneMemoList[arg.idx]
+            let jsonStr = JSON.stringify(selectedDoneMemo)
+            let tmpMemo = JSON.parse(jsonStr)
+            this.doneMemoList.splice(arg.idx, 1)
+            this.ongoingMemoList.push(tmpMemo)
+          }
+          
           break
         case 'changePriority':
           console.log(arg.idx)
           break
         case 'clearMemoList':
-          this.memoList = []
+          this.ongoingMemoList = []
+          this.doneMemoList = []
           break
       }
       //axios로 서버에 요청하여 서버에서 케이스 별로 데이터 수정

@@ -1,16 +1,25 @@
 <template>
   <div id='app-memo-list'>
+    <h4>ongoing</h4>
     <ul>
-      <li v-for='(v, idx) in propMemoList' v-bind:key='idx' 
+      <li v-for='(v, idx) in propOngoingMemoList' v-bind:key='idx' 
       draggable='true' 
       v-on:dragstart='dragStart($event, idx)'
       v-on:drop='drop($event, idx)'
       v-on:dragover.prevent>
-        <input v-model='v.isDone' v-on:change='changeDone(idx)' type='checkbox' name='isDone'>
+        <input v-model='v.isDone' v-on:change='changeDone($event, "ongoing", idx)' type='checkbox' name='isDone'>
         <p v-if='!v.changeMode' v-on:dblclick='startChange(idx)' v-bind:class='{done: v.isDone}'>{{ v.memo }}</p>
         <input v-else v-on:keyup='endChange($event, idx)' v-model='v.memo'
         v-focus
         v-on:focusout='v.canFocusOut ? focusOut($event, idx) : null' type="text">
+      </li>
+    </ul>
+
+    <h4>done</h4>
+    <ul>
+      <li v-for='(v, idx) in propDoneMemoList' v-bind:key='idx'>
+        <input v-model='v.isDone' v-on:change='changeDone($event, "done", idx)' type='checkbox' name='isDone'>
+        <p class='done'>{{ v.memo }}</p>
       </li>
     </ul>
 
@@ -36,7 +45,7 @@ import Modal from './common/Modal.vue'
 
 export default {
   name: 'AppMemoList',
-  props: ['propMemoList'],
+  props: ['propMemoList', 'propDoneMemoList', 'propOngoingMemoList'],
   components: {
     Modal: Modal
   },
@@ -60,38 +69,43 @@ export default {
         idx: idx
       })
     },
-    changeDone: function(idx) {
+    changeDone: function(e, kind, idx) {
+      if(kind === 'ongoing'){
+        e.target.checked = false
+      }
+      else if(kind === 'done'){
+        e.target.checked = true
+      }
       this.reportChange('changeDone', idx)
     },
     startChange: function(idx) {
-      console.log(idx)
-      if(this.propMemoList.length !== 0){
+      if(this.propOngoingMemoList.length !== 0){
         this.oldMemoList = []
       }
 
-      for(let i in this.propMemoList){
-        if(this.propMemoList[i].changeMode) {
-          this.propMemoList[i].changeMode = false
+      for(let i in this.propOngoingMemoList){
+        if(this.propOngoingMemoList[i].changeMode) {
+          this.propOngoingMemoList[i].changeMode = false
         }
         if(idx === parseInt(i)){
-          this.propMemoList[i].changeMode = true
-          this.propMemoList[i].canFocusOut = true
+          this.propOngoingMemoList[i].changeMode = true
+          this.propOngoingMemoList[i].canFocusOut = true
         }
 
         let tmpMemo = {
-          priority: this.propMemoList[i].priority,
-          memo: this.propMemoList[i].memo,
-          isDone: this.propMemoList[i].isDone,
-          changeMode: this.propMemoList[i].changeMode,
-          canFocusOut: this.propMemoList[i].canFocusOut
+          priority: this.propOngoingMemoList[i].priority,
+          memo: this.propOngoingMemoList[i].memo,
+          isDone: this.propOngoingMemoList[i].isDone,
+          changeMode: this.propOngoingMemoList[i].changeMode,
+          canFocusOut: this.propOngoingMemoList[i].canFocusOut
         }
         this.oldMemoList.push(tmpMemo)
       }
     },
     endChange: function(e, idx) {
       if(e.keyCode === 13) {
-        this.propMemoList[idx].canFocusOut = false
-        this.propMemoList[idx].changeMode = false
+        this.propOngoingMemoList[idx].canFocusOut = false
+        this.propOngoingMemoList[idx].changeMode = false
         this.reportChange('endChange', idx)
       }
     },
@@ -103,16 +117,16 @@ export default {
       if(trgtIdx === srcIdx) {
         return
       }
-      let srcPriority = this.propMemoList[srcIdx].priority
-      let trgtPriority = this.propMemoList[trgtIdx].priority
+      let srcPriority = this.propOngoingMemoList[srcIdx].priority
+      let trgtPriority = this.propOngoingMemoList[trgtIdx].priority
 
-      this.propMemoList[trgtIdx].priority = srcPriority
-      this.propMemoList[srcIdx].priority = trgtPriority
+      this.propOngoingMemoList[trgtIdx].priority = srcPriority
+      this.propOngoingMemoList[srcIdx].priority = trgtPriority
       this.reportChange('changePriority', [srcPriority, trgtPriority])
     },
     focusOut: function(e, idx) {
-      this.propMemoList[idx].changeMode = false
-      this.propMemoList[idx].memo = this.oldMemoList[idx].memo
+      this.propOngoingMemoList[idx].changeMode = false
+      this.propOngoingMemoList[idx].memo = this.oldMemoList[idx].memo
     },
     okModal: function() {
       this.reportChange('clearMemoList')
