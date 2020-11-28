@@ -22,11 +22,11 @@ export default {
   data: function() {
     return {
       msg: 'Welcome to Your Vue.js App',
-      userId: 'dgsoul',
       ongoingMemoList: [],
       doneMemoList: []
     }
   },
+  props: ['userId'],
   computed: {
     sortedOngoingMemoList: function() {
       this.ongoingMemoList.sort(function(a, b) {
@@ -149,17 +149,5 @@ export default {
 </script>
 
 <style>
-#app {
-  font-family: 'Avenir', Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
-}
 
-ul {
-  list-style-type: none;
-  padding: 0;
-}
 </style>

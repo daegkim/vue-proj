@@ -1,12 +1,15 @@
 var path = require('path')
 var webpack = require('webpack')
+const UglifyJsPlugin = require('uglifyjs-webpack-plugin')
 
 module.exports = {
-  entry: './src/main.js',
+  entry: {
+    BaseEntry: './src/main.js'
+  },
   output: {
     path: path.resolve(__dirname, '../express-proj/dist'),
     publicPath: '/dist/',
-    filename: 'build.js'
+    filename: '[name].build.js'
   },
   module: {
     rules: [

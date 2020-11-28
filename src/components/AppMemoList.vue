@@ -177,4 +177,9 @@ export default {
   margin: 0px;
   padding: 0px;
 }
+
+#app-memo-list ul {
+  list-style-type: none;
+  padding: 0;
+}
 </style>
