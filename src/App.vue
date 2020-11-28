@@ -30,17 +30,17 @@ export default {
   computed: {
     sortedOngoingMemoList: function() {
       this.ongoingMemoList.sort(function(a, b) {
-        if(a.priority < b.priority) return -1
+        if(a.priority > b.priority) return -1
         else if(a.priority === b.priority) return 0
-        else if(a.priority > b.priority) return 1
+        else if(a.priority < b.priority) return 1
       })
       return this.ongoingMemoList
     },
     sortedDoneMemoList: function() {
       this.doneMemoList.sort(function(a, b) {
-        if(a.priority < b.priority) return -1
+        if(a.priority > b.priority) return -1
         else if(a.priority === b.priority) return 0
-        else if(a.priority > b.priority) return 1
+        else if(a.priority < b.priority) return 1
       })
       return this.doneMemoList
     }
@@ -110,6 +110,7 @@ export default {
     reportChange: function(arg) {
       console.log(arg.prop)
       let selectedMemo = this.ongoingMemoList[arg.idx]
+      let selectedDoneMemo = this.doneMemoList[arg.idx]
 
       switch(arg.prop){
         case 'endChange':
@@ -119,21 +120,19 @@ export default {
           }
           break
         case 'changeDone':
-          let selectedDoneMemo = this.doneMemoList[arg.idx]
-          if(selectedMemo.isDone){
+          if(selectedMemo !== undefined && selectedMemo.isDone){
             let jsonStr = JSON.stringify(selectedMemo)
             let tmpMemo = JSON.parse(jsonStr)
             this.ongoingMemoList.splice(arg.idx, 1)
             this.doneMemoList.push(tmpMemo)
           }
-          else if(!selectedDoneMemo.isDone){
+          else if(selectedDoneMemo !== undefined && !selectedDoneMemo.isDone){
             selectedDoneMemo = this.doneMemoList[arg.idx]
             let jsonStr = JSON.stringify(selectedDoneMemo)
             let tmpMemo = JSON.parse(jsonStr)
             this.doneMemoList.splice(arg.idx, 1)
             this.ongoingMemoList.push(tmpMemo)
           }
-          
           break
         case 'changePriority':
           console.log(arg.idx)

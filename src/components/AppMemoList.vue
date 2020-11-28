@@ -11,7 +11,9 @@
         <p v-if='!v.changeMode' v-on:dblclick='startChange(idx)' v-bind:class='{done: v.isDone}'>{{ v.memo }}</p>
         <input v-else v-on:keyup='endChange($event, idx)' v-model='v.memo'
         v-focus
-        v-on:focusout='v.canFocusOut ? focusOut($event, idx) : null' type="text">
+        v-on:focusout='v.canFocusOut ? focusOut($event, idx) : null'
+        type="text"
+        v-on:input='inputEvent'>
       </li>
     </ul>
 
@@ -57,10 +59,14 @@ export default {
   },
   directives: {
     focus: {
-      inserted: function(el) {
+      inserted: (el) => {
         el.focus()
+        this.a.methods.resizableInput(el)
       }
     }
+  },
+  mounted: function() {
+
   },
   methods: {
     reportChange: function(prop, idx) {
@@ -131,6 +137,20 @@ export default {
     okModal: function() {
       this.reportChange('clearMemoList')
       this.showModal = false
+    },
+    inputEvent: function(e) {
+      this.resizableInput(e.target)
+    },
+    resizableInput: function(el) {
+      let virtualDom = document.createElement('div')
+      virtualDom.setAttribute('id', 'virtual-dom')
+      virtualDom.innerText = el.value
+      document.getElementById('app-memo-list').appendChild(virtualDom)
+
+      el.style.width = String(document.getElementById('virtual-dom').offsetWidth) + 'px'
+
+      virtualDom.innerText = ''
+      document.getElementById('virtual-dom').remove()
     }
   }
 }
@@ -144,9 +164,17 @@ export default {
 
 #app-memo-list input {
   display: inline-block;
+  text-align: center;
 }
 
 .done {
   text-decoration: line-through;
+}
+
+#virtual-dom {
+  display: inline-block;
+  visibility: hidden;
+  margin: 0px;
+  padding: 0px;
 }
 </style>
