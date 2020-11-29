@@ -3,11 +3,13 @@
     <form v-on:submit.prevent='requestSignIn'>
       <div style='margin-bottom: 5px'>
         <label for='inputUserId'>ID</label>
-        <input v-model='account.userId' type="text" name="userId" id="inputUserId">
+        <input v-model='account.userId' type="text" name="userId" id="inputUserId" v-on:focus='initRightFlag'>
+        <p v-if='!isRightId' v-bind:style='errorStyle'>wrong ID</p>
       </div>
       <div style='margin-bottom: 20px'>
         <label for='inputUserPwd'>PWD</label>
-        <input v-model='account.userPwd' type="password" name="userPwd" id="inputUserPwd">
+        <input v-model='account.userPwd' type="password" name="userPwd" id="inputUserPwd" v-on:focus='initRightFlag'>
+        <p v-if='!isRightPwd' v-bind:style='errorStyle'>wrong password</p>
       </div>
       <button type="submit">Sign In</button>
     </form>
@@ -25,7 +27,15 @@ export default {
     return {
       account: {
         userId: '',
-        userPwd: ''
+        userPwd: '',
+      },
+      isRightId: true,
+      isRightPwd: true,
+      errorStyle: {
+        color: 'red',
+        fontSize: '10px',
+        cursor: 'auto',
+        margin: '0px'
       }
     }
   },
@@ -39,16 +49,26 @@ export default {
       //axios로 로그인 성공여부를 확인한 후에 성공이면 path이동 실패면 에러 팝업
       //path이동시 id값을 어떻게 vue객체에게 전달해 줄 것인가?
       //Base가 가지고 있을 수 있는가? 가능하다. 그럼 전달하3
+      var self = this
       axios({
-        url: '/signin',
+        url: 'http://localhost:3000/signin',
         method: 'post',
         data: {
           userId: this.account.userId,
-          userPwd: this.sha512UserPwd
+          userPwd: this.sha512UserPwd,
         }
       })
       .then(function(res) {
-        this.$emit('successSignIn', this.account.userId)
+        if(res.data.userId === null){
+          if(res.data.error === 'userId'){
+            self.isRightId = false
+          }
+          else if(res.data.error === 'userPwd'){
+            self.isRightPwd = false
+          }
+          return
+        }
+        self.$emit('successSignIn', res.data.userId)
       })
       .catch(function(exception) {
         
@@ -56,6 +76,10 @@ export default {
     },
     changeMode: function() {
       this.$emit('changeMode', 'signUp')
+    },
+    initRightFlag: function() {
+      this.isRightId = true
+      this.isRightPwd = true
     }
   }
 }
