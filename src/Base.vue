@@ -1,6 +1,6 @@
 <template>
   <div id='base'>
-    <router-view v-on:successSignIn='successSignIn' v-bind:userId=userId></router-view>
+    <router-view v-on:successSignIn='successSignIn' v-bind:propUserId=userId></router-view>
   </div>
 </template>
 

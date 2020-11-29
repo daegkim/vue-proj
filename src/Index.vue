@@ -25,11 +25,9 @@ export default {
   },
   methods: {
     changeMode: function(arg) {
-      console.log(arg)
       this.mode = arg
     },
     successSignIn: function(arg) {
-      console.log(arg)
       this.$emit('successSignIn', arg)
     }
   }

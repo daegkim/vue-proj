@@ -1,7 +1,7 @@
 <template>
   <div id="app">
     <app-header/>
-    <app-form v-bind:propUserId='userId'
+    <app-form v-bind:propUserId='propUserId'
     v-bind:propMemoList='sortedOngoingMemoList'
     v-on:addMemo='addMemo'/>
     <app-memo-list v-bind:propOngoingMemoList='sortedOngoingMemoList'
@@ -26,7 +26,7 @@ export default {
       doneMemoList: []
     }
   },
-  props: ['userId'],
+  props: ['propUserId'],
   computed: {
     sortedOngoingMemoList: function() {
       this.ongoingMemoList.sort(function(a, b) {
@@ -55,24 +55,35 @@ export default {
   },
   methods: {
     addMemo: function(arg) {
-      this.ongoingMemoList.push(arg)
+      let self = this
+      axios({
+        method: 'post',
+        baseURL: 'http://localhost:3000',
+        url: '/memo/createMemo',
+        data: {
+          userId: self.propUserId,
+          memo: arg.memo
+        }
+      })
+      .then(function(res) {
+        self.ongoingMemoList.push(arg)
+      })
     },
     getMemoList: function() {
       let self = this
       axios({
-        method: 'get',
-        baseURL: 'https://jsonplaceholder.typicode.com',
-        url: '/todos',
-        params: {
-          userId: 1
+        method: 'post',
+        url: 'http://localhost:3000/memo/getMemoList',
+        data: {
+          userId: self.propUserId
         }
       })
       .then(function(res) {
         for(let i in res.data){
           let tmpMemo = {
-            priority: parseInt(i),
-            memo: res.data[i].title,
-            isDone: false,
+            priority: res.data[i].priority,
+            memo: res.data[i].memo,
+            isDone: res.data[i].isDone,
             changeMode: false,
             canFocusOut: true
           }
