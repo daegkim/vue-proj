@@ -62,11 +62,18 @@ export default {
         url: '/memo/createMemo',
         data: {
           userId: self.propUserId,
-          memo: arg.memo
+          memo: arg
         }
       })
       .then(function(res) {
-        self.ongoingMemoList.push(arg)
+        self.ongoingMemoList.push({
+          memoId: res.data.memoId,
+          memo: res.data.memo,
+          priority: res.data.priority,
+          isDone: res.data.isDone,
+          changeMode: false,
+          canFocusOut: false
+        })
       })
     },
     getMemoList: function() {
@@ -81,6 +88,7 @@ export default {
       .then(function(res) {
         for(let i in res.data){
           let tmpMemo = {
+            memoId: res.data[i].memoId,
             priority: res.data[i].priority,
             memo: res.data[i].memo,
             isDone: res.data[i].isDone,
@@ -118,41 +126,108 @@ export default {
         }
       })
     },
-    reportChange: function(arg) {
-      console.log(arg.prop)
+    setEditData: function(arg) {
       let selectedMemo = this.ongoingMemoList[arg.idx]
       let selectedDoneMemo = this.doneMemoList[arg.idx]
+      let data = {}
+      let action = ''
 
       switch(arg.prop){
         case 'endChange':
-          console.log(selectedMemo.memo)
           if(selectedMemo.memo === ''){
+            //해당 메모 삭제
+            action = 'delete'
+            data = {
+              memoId: this.ongoingMemoList[arg.idx].memoId
+            }
             this.ongoingMemoList.splice(arg.idx, 1)
+          }
+          else{
+            action = 'change'
+            data = {
+              memoId: selectedMemo.memoId,
+              memo: selectedMemo.memo,
+              isDone: selectedMemo.isDone,
+              priority: selectedMemo.priority
+            }
           }
           break
         case 'changeDone':
           if(selectedMemo !== undefined && selectedMemo.isDone){
             let jsonStr = JSON.stringify(selectedMemo)
             let tmpMemo = JSON.parse(jsonStr)
+
+            action = 'change'
+            data = {
+              memoId: selectedMemo.memoId,
+              memo: selectedMemo.memo,
+              isDone: selectedMemo.isDone,
+              priority: selectedMemo.priority
+            }
+
+            
             this.ongoingMemoList.splice(arg.idx, 1)
             this.doneMemoList.push(tmpMemo)
           }
           else if(selectedDoneMemo !== undefined && !selectedDoneMemo.isDone){
-            selectedDoneMemo = this.doneMemoList[arg.idx]
             let jsonStr = JSON.stringify(selectedDoneMemo)
             let tmpMemo = JSON.parse(jsonStr)
+
+            action = 'change'
+            data = {
+              memoId: selectedDoneMemo.memoId,
+              memo: selectedDoneMemo.memo,
+              isDone: selectedDoneMemo.isDone,
+              priority: selectedDoneMemo.priority
+            }
+
             this.doneMemoList.splice(arg.idx, 1)
             this.ongoingMemoList.push(tmpMemo)
           }
           break
         case 'changePriority':
-          console.log(arg.idx)
+          action = 'change'
+          data = [
+          {
+            memoId: this.ongoingMemoList[arg.idx[0]].memoId,
+            memo: this.ongoingMemoList[arg.idx[0]].memo,
+            isDone: this.ongoingMemoList[arg.idx[0]].isDone,
+            priority: this.ongoingMemoList[arg.idx[0]].priority
+          },
+          {
+            memoId: this.ongoingMemoList[arg.idx[1]].memoId,
+            memo: this.ongoingMemoList[arg.idx[1]].memo,
+            isDone: this.ongoingMemoList[arg.idx[1]].isDone,
+            priority: this.ongoingMemoList[arg.idx[1]].priority
+          }
+          ]
           break
         case 'clearMemoList':
           this.ongoingMemoList = []
           this.doneMemoList = []
+          action = 'deleted'
+          data = {
+            memoId: null
+          }
           break
       }
+
+      return {
+        action: action,
+        data: data
+      }
+    },
+    reportChange: function(arg) {
+      let editData = this.setEditData(arg)
+      console.log(editData)
+      axios({
+        url: 'http://localhost:3000/memo/updateMemo',
+        method: 'post',
+        data: editData.data
+      })
+      .then(function(res) {
+        console.log(res)
+      })
       //axios로 서버에 요청하여 서버에서 케이스 별로 데이터 수정
     }
   }

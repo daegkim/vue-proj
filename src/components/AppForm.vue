@@ -24,15 +24,7 @@ export default {
         return
       }
 
-      let priority = this.propMemoList.length !== 0 ? this.propMemoList[0].priority + 1 : 0
-      let tmpMemo = {
-        memo: this.memo,
-        isDone: false,
-        changeMode: false,
-        priority: priority,
-        canFocusOut: true
-      }
-      this.$emit('addMemo', tmpMemo)
+      this.$emit('addMemo', this.memo)
       this.memo = ''
     }
   }

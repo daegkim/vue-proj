@@ -128,7 +128,7 @@ export default {
 
       this.propOngoingMemoList[trgtIdx].priority = srcPriority
       this.propOngoingMemoList[srcIdx].priority = trgtPriority
-      this.reportChange('changePriority', [srcPriority, trgtPriority])
+      this.reportChange('changePriority', [srcIdx, trgtIdx])
     },
     focusOut: function(e, idx) {
       this.propOngoingMemoList[idx].changeMode = false
