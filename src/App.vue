@@ -205,7 +205,7 @@ export default {
         case 'clearMemoList':
           this.ongoingMemoList = []
           this.doneMemoList = []
-          action = 'deleted'
+          action = 'delete'
           data = {
             memoId: null
           }
@@ -219,9 +219,16 @@ export default {
     },
     reportChange: function(arg) {
       let editData = this.setEditData(arg)
-      console.log(editData)
+      let actionUrl = ''
+      
+      if(editData.action === 'change'){
+        actionUrl = 'http://localhost:3000/memo/updateMemo'
+      }
+      else if(editData.action === 'delete'){
+        actionUrl = 'http://localhost:3000/memo/deleteMemo'
+      }
       axios({
-        url: 'http://localhost:3000/memo/updateMemo',
+        url: actionUrl,
         method: 'post',
         data: editData.data
       })
