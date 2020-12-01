@@ -31,6 +31,7 @@
 </template>
 
 <script>
+//slot
 export default {
   name: 'Modal'
 }
