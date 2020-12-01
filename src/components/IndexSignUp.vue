@@ -127,8 +127,17 @@ export default {
     },
     checkIdExist: function() {
       var self = this
+      
+      var url = ''
+      if(process.env.NODE_ENV === 'production'){
+        url = '/checkid'
+      }
+      else if(process.env.NODE_ENV === 'development'){
+        url = 'http://localhost:3000/checkid'
+      }
+
       axios({
-        url: 'http://localhost:3000/checkid',
+        url: url,
         method: 'post',
         data: {
           userId: self.account.userId,
