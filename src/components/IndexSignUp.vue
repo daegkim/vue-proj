@@ -80,8 +80,17 @@ export default {
       //axios로 회원가입 성공 후
       //성공했으면 다시 모드 변경
       var self = this
+
+      var url = ''
+      if(process.env.NODE_ENV === 'production'){
+        url = '/signup'
+      }
+      else if(process.env.NODE_ENV === 'development'){
+        url = 'http://localhost:3000/signup'
+      }
+
       axios({
-        url: 'http://localhost:3000/signup',
+        url: url,
         method: 'post',
         data: {
           userId: self.account.userId,

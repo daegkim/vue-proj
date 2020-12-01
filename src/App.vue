@@ -56,10 +56,18 @@ export default {
   methods: {
     addMemo: function(arg) {
       let self = this
+
+      var url = ''
+      if(process.env.NODE_ENV === 'production'){
+        url = '/memo/createMemo'
+      }
+      else if(process.env.NODE_ENV === 'development'){
+        url = 'http://localhost:3000/memo/createMemo'
+      }
+
       axios({
         method: 'post',
-        baseURL: 'http://localhost:3000',
-        url: '/memo/createMemo',
+        url: url,
         data: {
           userId: self.propUserId,
           memo: arg
@@ -78,9 +86,18 @@ export default {
     },
     getMemoList: function() {
       let self = this
+
+      var url = ''
+      if(process.env.NODE_ENV === 'production'){
+        url = '/memo/getMemoList'
+      }
+      else if(process.env.NODE_ENV === 'development'){
+        url = 'http://localhost:3000/memo/getMemoList'
+      }
+
       axios({
         method: 'post',
-        url: 'http://localhost:3000/memo/getMemoList',
+        url: url,
         data: {
           userId: self.propUserId
         }
@@ -221,11 +238,19 @@ export default {
       let editData = this.setEditData(arg)
       let actionUrl = ''
       
+      var baseUrl = ''
+      if(process.env.NODE_ENV === 'production'){
+        baseUrl = '/'
+      }
+      else if(process.env.NODE_ENV === 'development'){
+        baseUrl = 'http://localhost:3000/'
+      }
+      
       if(editData.action === 'change'){
-        actionUrl = 'http://localhost:3000/memo/updateMemo'
+        actionUrl = baseUrl + 'memo/updateMemo'
       }
       else if(editData.action === 'delete'){
-        actionUrl = 'http://localhost:3000/memo/deleteMemo'
+        actionUrl = baseUrl + 'memo/deleteMemo'
       }
       axios({
         url: actionUrl,

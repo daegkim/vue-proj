@@ -49,9 +49,17 @@ export default {
       //axios로 로그인 성공여부를 확인한 후에 성공이면 path이동 실패면 에러 팝업
       //path이동시 id값을 어떻게 vue객체에게 전달해 줄 것인가?
       //Base가 가지고 있을 수 있는가? 가능하다. 그럼 전달하3
+      var url = ''
+      if(process.env.NODE_ENV === 'production'){
+        url = '/signin'
+      }
+      else if(process.env.NODE_ENV === 'development'){
+        url = 'http://localhost:3000/signin'
+      }
+      
       var self = this
       axios({
-        url: 'http://localhost:3000/signin',
+        url: url,
         method: 'post',
         data: {
           userId: this.account.userId,

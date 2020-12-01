@@ -8,8 +8,6 @@
 </template>
 
 <script>
-import axios from 'axios'
-
 export default {
   name: 'AppForm',
   props: ['propUserId', 'propMemoList'],
