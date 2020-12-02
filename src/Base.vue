@@ -33,4 +33,12 @@ export default {
   color: #2c3e50;
   margin-top: 60px;
 }
+
+#base p {
+  font-size: 16px;
+}
+
+#base input {
+  font-size: 16px;
+}
 </style>
