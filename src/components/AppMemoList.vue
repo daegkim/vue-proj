@@ -1,14 +1,19 @@
 <template>
   <div id='app-memo-list'>
     <h4>ongoing</h4>
-    <ul>
+    <ul id='ongoing-memo-list'>
       <li v-for='(v, idx) in propOngoingMemoList' v-bind:key='idx' 
       draggable='true' 
       v-on:dragstart='dragStart($event, idx)'
       v-on:drop='drop($event, idx)'
       v-on:dragover.prevent>
         <input v-model='v.isDone' v-on:change='changeDone($event, "ongoing", idx)' type='checkbox' name='isDone'>
-        <p v-if='!v.changeMode' v-on:dblclick='startChange(idx)' v-bind:class='{done: v.isDone}'>{{ v.memo }}</p>
+        <p v-if='!v.changeMode' 
+        v-on:touchmove.prevent='touchMoveEvent' 
+        v-on:touchend='touchEndEvent($event, idx)'
+        v-on:touchcancel='touchEndEvent'
+        v-on:dblclick='startChange(idx)' 
+        v-bind:class='{done: v.isDone}'>{{ v.memo }}</p>
         <input v-else v-on:keyup='endChange($event, idx)' v-model='v.memo'
         v-focus
         v-on:focusout='v.canFocusOut ? focusOut($event, idx) : null'
@@ -151,6 +156,53 @@ export default {
 
       virtualDom.innerText = ''
       document.getElementById('virtual-dom').remove()
+    },
+    touchMoveEvent: function(e) {
+      if(document.getElementById('shadow-p') !== null){
+        let elem = document.getElementById('shadow-p')
+        elem.style.top = String(e.changedTouches[0].clientY - 8) + 'px'
+        elem.style.left = String(e.changedTouches[0].clientX - 8) + 'px'
+        return
+      }
+      var elem = document.createElement('p')
+      elem.innerText = e.target.innerText
+      elem.setAttribute('id', 'shadow-p')
+      elem.style.position = 'absolute'
+      elem.style.opacity = '0.3'
+      elem.style.top = String(e.changedTouches[0].clientY - 8) + 'px'
+      elem.style.left = String(e.changedTouches[0].clientX - 8) + 'px'
+
+      document.getElementById('app').append(elem)
+    },
+    touchEndEvent: function(e, srcIdx) {
+      if(e.cancelable) {
+        e.preventDefault()
+      }
+
+      if(document.getElementById('shadow-p') !== null){
+        document.getElementById('shadow-p').remove()
+      }
+
+      var children = document.querySelectorAll('#ongoing-memo-list li p')
+      let trgtIdx = 0
+      for(let child of children){
+        var destRect = child.getBoundingClientRect()
+        var destHeight = child.offsetHeight;
+        var destWidth = child.offsetWidth;
+        var rangeX = [destRect.x, destRect.x + destWidth]
+        var rangeY = [destRect.y, destRect.y + destHeight]
+
+        if(e.changedTouches[0].clientX >= rangeX[0] && e.changedTouches[0].clientX <= rangeX[1]
+        && e.changedTouches[0].clientY >= rangeY[0] && e.changedTouches[0].clientY <= rangeY[1]){
+          let srcPriority = this.propOngoingMemoList[srcIdx].priority
+          let trgtPriority = this.propOngoingMemoList[trgtIdx].priority
+
+          this.propOngoingMemoList[trgtIdx].priority = srcPriority
+          this.propOngoingMemoList[srcIdx].priority = trgtPriority
+          this.reportChange('changePriority', [srcIdx, trgtIdx])
+        }
+        trgtIdx += 1
+      }
     }
   }
 }
