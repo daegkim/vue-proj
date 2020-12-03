@@ -8,14 +8,20 @@
       v-on:drop='drop($event, idx)'
       v-on:dragover.prevent>
         <input v-model='v.isDone' v-on:change='changeDone($event, "ongoing", idx)' type='checkbox' name='isDone'>
-        <p v-if='!v.changeMode' 
+
+        <p v-if='!v.changeMode'
+        v-on:touchstart='touchStartEvent($event, idx)'
         v-on:touchmove.prevent='touchMoveEvent' 
         v-on:touchend='touchEndEvent($event, idx)'
         v-on:touchcancel='touchEndEvent'
         v-on:dblclick='startChange(idx)' 
         v-bind:class='{done: v.isDone}'>{{ v.memo }}</p>
-        <input v-else v-on:keyup='endChange($event, idx)' v-model='v.memo'
+        
+        <input v-else
+        v-on:keyup='endChange($event, idx)'
+        v-model='v.memo'
         v-focus
+        v-on:focus='focusOn($event, idx)'
         v-on:focusout='v.canFocusOut ? focusOut($event, idx) : null'
         type="text"
         v-on:input='inputEvent'>
@@ -66,12 +72,8 @@ export default {
     focus: {
       inserted: (el) => {
         el.focus()
-        this.a.methods.resizableInput(el)
       }
     }
-  },
-  mounted: function() {
-
   },
   methods: {
     reportChange: function(prop, idx) {
@@ -139,6 +141,10 @@ export default {
       this.propOngoingMemoList[idx].changeMode = false
       this.propOngoingMemoList[idx].memo = this.oldMemoList[idx].memo
     },
+    focusOn: function(e, idx) {
+      e.preventDefault()
+      this.resizableInput(e.target)
+    },
     okModal: function() {
       this.reportChange('clearMemoList')
       this.showModal = false
@@ -152,25 +158,54 @@ export default {
       virtualDom.innerText = el.value
       document.getElementById('app-memo-list').appendChild(virtualDom)
 
-      el.style.width = String(document.getElementById('virtual-dom').offsetWidth) + 'px'
+      el.style.width = String(document.getElementById('virtual-dom').offsetWidth + 10) + 'px'
 
       virtualDom.innerText = ''
       document.getElementById('virtual-dom').remove()
     },
+    touchStartEvent: function(e, idx) {
+      let preTime = this.propOngoingMemoList[idx].touchStartTime
+      console.log(preTime)
+      this.propOngoingMemoList[idx].touchStartTime = new Date()
+      if((this.propOngoingMemoList[idx].touchStartTime - preTime) < 250) {       
+        if(this.propOngoingMemoList.length !== 0){
+          this.oldMemoList = []
+        }
+
+        for(let i in this.propOngoingMemoList){
+          if(this.propOngoingMemoList[i].changeMode) {
+            this.propOngoingMemoList[i].changeMode = false
+          }
+          if(idx === parseInt(i)){
+            this.propOngoingMemoList[i].changeMode = true
+            this.propOngoingMemoList[i].canFocusOut = true
+          }
+
+          let tmpMemo = {
+            priority: this.propOngoingMemoList[i].priority,
+            memo: this.propOngoingMemoList[i].memo,
+            isDone: this.propOngoingMemoList[i].isDone,
+            changeMode: this.propOngoingMemoList[i].changeMode,
+            canFocusOut: this.propOngoingMemoList[i].canFocusOut
+          }
+          this.oldMemoList.push(tmpMemo)
+        }
+      }
+    },
     touchMoveEvent: function(e) {
       if(document.getElementById('shadow-p') !== null){
         let elem = document.getElementById('shadow-p')
-        elem.style.top = String(e.changedTouches[0].clientY - 8) + 'px'
-        elem.style.left = String(e.changedTouches[0].clientX - 8) + 'px'
+        elem.style.top = String(e.changedTouches[0].clientY - 30) + 'px'
+        elem.style.left = String(e.changedTouches[0].clientX - 20) + 'px'
         return
       }
       var elem = document.createElement('p')
       elem.innerText = e.target.innerText
       elem.setAttribute('id', 'shadow-p')
       elem.style.position = 'absolute'
-      elem.style.opacity = '0.3'
-      elem.style.top = String(e.changedTouches[0].clientY - 8) + 'px'
-      elem.style.left = String(e.changedTouches[0].clientX - 8) + 'px'
+      elem.style.opacity = '0.4'
+      elem.style.top = String(e.changedTouches[0].clientY - 30) + 'px'
+      elem.style.left = String(e.changedTouches[0].clientX - 20) + 'px'
 
       document.getElementById('app').append(elem)
     },
@@ -184,6 +219,10 @@ export default {
       }
 
       var children = document.querySelectorAll('#ongoing-memo-list li p')
+      //p가 input으로 바뀐게 있으면 이동시키지 말아야 함
+      if(children.length !== this.propOngoingMemoList.length){
+        return
+      }
       let trgtIdx = 0
       for(let child of children){
         var destRect = child.getBoundingClientRect()
@@ -194,6 +233,9 @@ export default {
 
         if(e.changedTouches[0].clientX >= rangeX[0] && e.changedTouches[0].clientX <= rangeX[1]
         && e.changedTouches[0].clientY >= rangeY[0] && e.changedTouches[0].clientY <= rangeY[1]){
+          if(srcIdx === trgtIdx) {
+            break
+          }
           let srcPriority = this.propOngoingMemoList[srcIdx].priority
           let trgtPriority = this.propOngoingMemoList[trgtIdx].priority
 
@@ -233,5 +275,9 @@ export default {
 #app-memo-list ul {
   list-style-type: none;
   padding: 0;
+}
+
+#app-memo-list li {
+  margin-bottom: 10px;
 }
 </style>

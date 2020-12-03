@@ -41,4 +41,8 @@ export default {
 #base input {
   font-size: 16px;
 }
+
+#base button {
+  font-size: 16px;
+}
 </style>

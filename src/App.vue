@@ -110,7 +110,8 @@ export default {
             memo: res.data[i].memo,
             isDone: res.data[i].isDone,
             changeMode: false,
-            canFocusOut: true
+            canFocusOut: true,
+            touchStartTime: null
           }
 
           if(res.data[i].isDone === undefined || !res.data[i].isDone){
